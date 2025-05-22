@@ -1,8 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
-
 
 const LoginPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -16,6 +13,14 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- ADD THIS useEffect ---
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+  // --------------------------
 
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
@@ -35,8 +40,6 @@ const LoginPage = () => {
       ...prev,
       [name]: value,
     }));
-    
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -47,61 +50,40 @@ const LoginPage = () => {
 
   const validate = () => {
     let tempErrors = {};
-    
     if (isRegistering) {
-      if (!formData.first_name) {
-        tempErrors.first_name = 'First name is required';
-      }
-      
-      if (!formData.last_name) {
-        tempErrors.last_name = 'Last name is required';
-      }
-      
-      if (!formData.phone_number) {
-        tempErrors.phone_number = 'Phone number is required';
-      }
+      if (!formData.first_name) tempErrors.first_name = 'First name is required';
+      if (!formData.last_name) tempErrors.last_name = 'Last name is required';
+      if (!formData.phone_number) tempErrors.phone_number = 'Phone number is required';
     }
-    
     if (!formData.email) {
       tempErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       tempErrors.email = 'Email is invalid';
     }
-    
     if (!formData.password) {
       tempErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       tempErrors.password = 'Password must be at least 6 characters';
     }
-    
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (validate()) {
       setIsSubmitting(true);
-      
       const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-      
       const payload = isRegistering
         ? formData
-        : {
-            email: formData.email,
-            password: formData.password,
-          };
-      
+        : { email: formData.email, password: formData.password };
       try {
         const res = await fetch(`http://localhost:5000${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-
         const result = await res.json();
-        
         if (res.ok) {
           if (result.token) {
             localStorage.setItem('token', result.token);

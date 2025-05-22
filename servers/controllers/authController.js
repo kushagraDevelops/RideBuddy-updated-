@@ -2,11 +2,12 @@
 
 import bcrypt from 'bcrypt';
 import db from '../config/db.js';
+import jwt from 'jsonwebtoken';
 
+const JWT_SECRET = process.env.JWT_SECRET
 export const registerUser = async (req, res) => {
   try {
     const { email, password, first_name, last_name, phone_number } = req.body;
-
     // Check if user already exists
     const userCheck = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
@@ -23,9 +24,17 @@ export const registerUser = async (req, res) => {
       [email, hashedPassword, first_name, last_name, phone_number]
     );
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: newUser.rows[0].id, email: newUser.rows[0].email },
+      JWT_SECRET,
+      { expiresIn: '1m' }
+    );
+
     res.status(201).json({
       message: 'User registered successfully',
       user: newUser.rows[0],
+      token, // <-- send token here
     });
   } catch (error) {
     console.error('❌ Error registering user:', error.message);
@@ -51,9 +60,17 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '1m' }
+    );
+
     res.status(200).json({
       message: 'Login successful',
       user,
+      token, // <-- send token here
     });
   } catch (error) {
     console.error('❌ Error logging in:', error.message);

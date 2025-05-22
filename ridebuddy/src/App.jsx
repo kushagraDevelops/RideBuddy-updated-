@@ -1,4 +1,4 @@
-import React from 'react'; // Import React
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './assets/components/parts/navbar';
 import RideBuddyHomepage from './assets/components/homepage';
@@ -7,23 +7,43 @@ import RideOffer from './assets/components/rideoffer';
 import ProfilePage from './assets/components/profile';
 import PostRideForm from './assets/components/postride';
 import AuthForm from './assets/components/AuthForm';
-
-
+import ProtectedRoute from './assets/components/protectedRoute';
 
 function App() {
   return (  
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<RideBuddyHomepage />} />
-        <Route path="/ridepage" element={<RideBuddyPage />} />
-        <Route path="/RideOffer" element={<RideOffer />} />   
-        <Route path="/profile" element={<ProfilePage />} />    
-        <Route path="/postride" element={<PostRideForm />} />
         <Route path="/auth" element={<AuthForm />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <RideBuddyHomepage />
+          </ProtectedRoute>
+        } />
+        <Route path="/ridepage" element={
+          <ProtectedRoute>
+            <RideBuddyPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/RideOffer" element={
+          <ProtectedRoute>
+            <RideOffer />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/postride" element={
+          <ProtectedRoute>
+            <PostRideForm />
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
