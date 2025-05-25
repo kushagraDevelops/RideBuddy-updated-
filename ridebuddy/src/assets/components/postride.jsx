@@ -20,13 +20,42 @@ export default function PostRideForm() {
       [name]: value
     });
   };
+  
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:5000/api/rides/postride', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Optionally, add Authorization header if using JWT:
+        // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(formData),
+    });
+    if (response.ok) {
+      setShowSuccess(true);
+      setFormData({
+        startLocation: '',
+        destination: '',
+        departureDate: '',
+        departureTime: '',
+        expectedReachingTime: '',
+        seats: '',
+        price: '',
+        notes: ''
+      });
+      setTimeout(() => setShowSuccess(false), 3000);
+    } else {
+      const errorData = await response.json();
+      alert(errorData.message || 'Failed to post ride');
+    }
+  } catch (err) {
+    alert('Failed to connect to server');
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4 md:p-8">
@@ -85,26 +114,68 @@ export default function PostRideForm() {
                 </div>
               </div>
 
-              {/* Date and Time */}
-              <div className="col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="dateTime">
-                  Date & Time <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-green-500" />
-                  </div>
-                  <input
-                    type="datetime-local"
-                    id="dateTime"
-                    name="dateTime"
-                    value={formData.dateTime}
-                    onChange={handleChange}
-                    required
-                    className="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 p-3 text-sm focus:border-green-500 focus:ring-green-500 outline-none border"
-                  />
-                </div>
-              </div>
+            {/* Departure Date */}
+<div className="col-span-1">
+  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="departureDate">
+    Departure Date <span className="text-red-500">*</span>
+  </label>
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <Calendar className="h-5 w-5 text-green-500" />
+    </div>
+    <input
+      type="date"
+      id="departureDate"
+      name="departureDate"
+      value={formData.departureDate}
+      onChange={handleChange}
+      required
+      className="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 p-3 text-sm focus:border-green-500 focus:ring-green-500 outline-none border"
+    />
+  </div>
+</div>
+
+{/* Departure Time */}
+<div className="col-span-1">
+  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="departureTime">
+    Departure Time <span className="text-red-500">*</span>
+  </label>
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <Calendar className="h-5 w-5 text-green-500" />
+    </div>
+    <input
+      type="time"
+      id="departureTime"
+      name="departureTime"
+      value={formData.departureTime}
+      onChange={handleChange}
+      required
+      className="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 p-3 text-sm focus:border-green-500 focus:ring-green-500 outline-none border"
+    />
+  </div>
+</div>
+
+{/* Expected Reaching Time */}
+<div className="col-span-1">
+  <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="expectedReachingTime">
+    Expected Reaching Time <span className="text-red-500">*</span>
+  </label>
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <Calendar className="h-5 w-5 text-green-500" />
+    </div>
+    <input
+      type="time"
+      id="expectedReachingTime"
+      name="expectedReachingTime"
+      value={formData.expectedReachingTime}
+      onChange={handleChange}
+      required
+      className="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 p-3 text-sm focus:border-green-500 focus:ring-green-500 outline-none border"
+    />
+  </div>
+</div>
 
               {/* Number of Seats */}
               <div className="col-span-1">
