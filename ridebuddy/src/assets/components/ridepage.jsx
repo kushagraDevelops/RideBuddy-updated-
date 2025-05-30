@@ -1,178 +1,89 @@
-import React, { useState } from 'react';
-import { Search, Menu, X, User, Calendar, Clock, MapPin, Star, Filter, ChevronDown, Plus, MessageCircle, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Calendar, Clock, MapPin, Star, Filter, ChevronDown, Plus, MessageCircle, X, Send } from 'lucide-react';
 import './index.css';
 import Form from './parts/form';
 
 const RideBuddyPage = () => {
+  const location = useLocation();
+  const { from, to, pickupDate } = location.state || {};
+
+  // Updated: manage additional backend data
+  const [rides, setRides] = useState([]);
+  const [stats, setStats] = useState({});
+  const [apiMessage, setApiMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('joined');
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState('earliest');
-  
-  // Chatbot state
+
+  // Chat state variables (missing in original)
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { text: "Hi there! How can I help with your ride today?", isBot: true }
-  ]);
   const [messageInput, setMessageInput] = useState('');
+  const [chatMessages, setChatMessages] = useState([
+    { text: "Hello! How can I help you today?", isBot: true }
+  ]);
 
-  // Handle sending a chat message
+  // Handle sending chat messages
   const handleSendMessage = () => {
-    if (messageInput.trim() === '') return;
-    
-    // Add user message
-    setChatMessages([...chatMessages, { text: messageInput, isBot: false }]);
-    setMessageInput('');
-    
-    // Simulate bot response after a short delay
-    setTimeout(() => {
+    if (messageInput.trim()) {
       setChatMessages(prev => [
-        ...prev, 
-        { 
-          text: "Thanks for your message! Our team will respond shortly. Need help finding or offering a ride?", 
-          isBot: true 
-        }
+        ...prev,
+        { text: messageInput, isBot: false },
+        { text: "Thanks for your message! Our support team will get back to you soon.", isBot: true }
       ]);
-    }, 1000);
+      setMessageInput('');
+    }
   };
 
-  // Sample data for rides
-  const availableRides = [
-    {
-      id: 1,
-      driver: {
-        name: "Amit Verma",
-        profilePic: "/api/placeholder/60/60",
-        rating: 4.8
-      },
-      pickup: "Delhi",
-      dropoff: "Jaipur",
-      date: "April 5, 2025",
-      time: "08:00 AM",
-      seats: 3,
-      price: 500
-    },
-    {
-      id: 2,
-      driver: {
-        name: "Neha Reddy",
-        profilePic: "/api/placeholder/60/60",
-        rating: 4.6
-      },
-      pickup: "Hyderabad",
-      dropoff: "Vijayawada",
-      date: "April 7, 2025",
-      time: "10:30 AM",
-      seats: 2,
-      price: 450
-    },
-    {
-      id: 3,
-      driver: {
-        name: "Karan Patel",
-        profilePic: "/api/placeholder/60/60",
-        rating: 4.9
-      },
-      pickup: "Ahmedabad",
-      dropoff: "Surat",
-      date: "April 6, 2025",
-      time: "07:15 AM",
-      seats: 4,
-      price: 400
-    },
-    {
-      id: 4,
-      driver: {
-        name: "Sana Khan",
-        profilePic: "/api/placeholder/60/60",
-        rating: 4.7
-      },
-      pickup: "Kolkata",
-      dropoff: "Durgapur",
-      date: "April 8, 2025",
-      time: "09:45 AM",
-      seats: 2,
-      price: 350
+  // Fetch rides and extra info based on search criteria
+  useEffect(() => {
+    if (from && to && pickupDate) {
+      setIsLoading(true);
+      fetch(
+        `http://localhost:5000/api/rides/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${pickupDate}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setRides(data.rides || []);
+          setStats(data.stats || {});
+          setApiMessage(data.message || '');
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching rides:', err);
+          setError('Failed to fetch rides');
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+      setRides([]);
+      setStats({});
+      setApiMessage('');
     }
-  ];
-  
-  const myRides = {
-    joined: [
-      {
-        id: 101,
-        driver: {
-          name: "James Taylor",
-          profilePic: "/api/placeholder/60/60",
-          rating: 4.5
-        },
-        pickup: "Denver, CO",
-        dropoff: "Boulder, CO",
-        date: "April 10, 2025",
-        time: "08:30 AM",
-        seats: 1,
-        price: 15,
-        status: "Confirmed"
-      },
-      {
-        id: 102,
-        driver: {
-          name: "Lisa Brown",
-          profilePic: "/api/placeholder/60/60",
-          rating: 4.7
-        },
-        pickup: "Miami, FL",
-        dropoff: "Orlando, FL",
-        date: "April 15, 2025",
-        time: "07:00 AM",
-        seats: 1,
-        price: 25,
-        status: "Pending"
-      }
-    ],
-    offering: [
-      {
-        id: 201,
-        pickup: "Atlanta, GA",
-        dropoff: "Nashville, TN",
-        date: "April 12, 2025",
-        time: "06:00 AM",
-        seats: 3,
-        price: 38,
-        passengers: 1
-      },
-      {
-        id: 202,
-        pickup: "Dallas, TX",
-        dropoff: "Houston, TX",
-        date: "April 20, 2025",
-        time: "09:00 AM",
-        seats: 4,
-        price: 30,
-        passengers: 2
-      }
-    ]
-  };
+  }, [from, to, pickupDate]);
 
   // Render star ratings
-  const renderStars = (rating) => {
-    return (
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-          <Star 
-            key={i} 
-            className={`h-4 w-4 ${i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-          />
-        ))}
-        <span className="ml-1 text-sm font-medium">{rating}</span>
-      </div>
-    );
-  };
+  const renderStars = (rating) => (
+    <div className="flex items-center">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+        />
+      ))}
+      <span className="ml-1 text-sm font-medium">{rating}</span>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      {/* Navigation-> a navbar component is added in the app.js already  */ }
-      
+      {/* Navigation-> a navbar component is added in the app.js already  */}
+
       {/* Hero Section */}
       <div className="relative bg-[#483C46] text-white">
         <div 
@@ -187,7 +98,7 @@ const RideBuddyPage = () => {
 
       {/* Search Section */}
       <Form/>
-      
+
       {/* Available Rides Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -244,20 +155,43 @@ const RideBuddyPage = () => {
           </div>
         </div>
 
+        {/* API message and stats */}
+        {apiMessage && (
+          <div className="mb-4 p-3 bg-blue-50 text-blue-900 rounded">
+            {apiMessage}
+          </div>
+        )}
+        {stats.total !== undefined && (
+          <div className="mb-4 text-gray-700">
+            <span className="font-semibold">{stats.total}</span> rides found.
+            {stats.average_price && (
+              <> Average price: <span className="font-semibold">Rs.{stats.average_price}</span></>
+            )}
+          </div>
+        )}
+
         {/* Ride Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {availableRides.map((ride) => (
-            <div key={ride.id} className="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg">
+          {isLoading && <div className="col-span-full text-center py-8">Loading rides...</div>}
+          {error && <div className="col-span-full text-red-500 text-center py-8">{error}</div>}
+          {!isLoading && rides.length === 0 && (
+            <div className="col-span-full text-gray-500 text-center py-8">No rides found for your criteria.</div>
+          )}
+          {rides.map((ride) => (
+            <div
+              key={ride.ride_id}
+              className="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <div className="p-6">
                 <div className="flex items-center mb-4">
                   <img
-                    src={ride.driver.profilePic}
-                    alt={ride.driver.name}
+                    src={"/api/placeholder/60/60"}
+                    alt={ride.driver_name || "Driver"}
                     className="h-12 w-12 rounded-full mr-4 object-cover"
                   />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{ride.driver.name}</h3>
-                    {renderStars(ride.driver.rating)}
+                    <h3 className="text-lg font-medium text-gray-900">{ride.driver_name || "Driver"}</h3>
+                    {renderStars(ride.driver_rating || 4)}
                   </div>
                 </div>
                 <div className="space-y-3 mb-4">
@@ -265,31 +199,39 @@ const RideBuddyPage = () => {
                     <MapPin className="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
                     <div>
                       <p className="text-xs text-gray-500">FROM</p>
-                      <p className="text-sm font-medium">{ride.pickup}</p>
+                      <p className="text-sm font-medium">{ride.origin}</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <MapPin className="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
                     <div>
                       <p className="text-xs text-gray-500">TO</p>
-                      <p className="text-sm font-medium">{ride.dropoff}</p>
+                      <p className="text-sm font-medium">{ride.destination}</p>
                     </div>
                   </div>
                   <div className="flex">
                     <div className="flex items-center mr-4">
                       <Calendar className="h-5 w-5 text-gray-500 mr-2" />
-                      <p className="text-sm">{ride.date}</p>
+                      <p className="text-sm">
+                        {ride.departure_time
+                          ? new Date(ride.departure_time).toLocaleDateString()
+                          : ""}
+                      </p>
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-5 w-5 text-gray-500 mr-2" />
-                      <p className="text-sm">{ride.time}</p>
+                      <p className="text-sm">
+                        {ride.departure_time
+                          ? new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : ""}
+                      </p>
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm text-gray-500">{ride.seats} seats available</p>
-                    <p className="text-xl font-bold text-indigo-600">Rs.{ride.price}</p>
+                    <p className="text-sm text-gray-500">{ride.available_seats} seats available</p>
+                    <p className="text-xl font-bold text-indigo-600">Rs.{ride.price_per_seat}</p>
                     <p className="text-xs text-gray-500">per seat</p>
                   </div>
                   <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-300">
@@ -303,9 +245,7 @@ const RideBuddyPage = () => {
       </div>
       
       {/* Offer a Ride Button */}
-     
-      <div href="/RideOffer" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
-      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
         <button
           onClick={() => setIsOfferModalOpen(true)}
           className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex items-center mx-auto"
@@ -313,9 +253,7 @@ const RideBuddyPage = () => {
           <Plus className="h-5 w-5 mr-2" />
           Offer a Ride
         </button>
-
       </div>
-      
 
       {/* Floating Chat Widget */}
       <div className="fixed bottom-6 right-6 z-50">

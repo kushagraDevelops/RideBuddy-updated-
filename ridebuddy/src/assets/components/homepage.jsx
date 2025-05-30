@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
-import { Link } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Car, Users, Globe, Star, ArrowRight, CheckCircle, Award, Shield } from 'lucide-react';
 
 const RideBuddyHomepage = () => {
-  const [location, setLocation] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [pickupDate, setPickupDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [rideCount, setRideCount] = useState(0);
   const [co2Count, setCo2Count] = useState(0);
   const [userCount, setUserCount] = useState(0);
 
-  const handleSearch = () => {
-    console.log('Searching with:', { location, pickupDate, returnDate });
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate('/ridepage', {
+      state: {
+        from,
+        to,
+        pickupDate,
+        returnDate
+      }
+    });
   };
 
   // Animation for counter
@@ -98,33 +109,36 @@ const RideBuddyHomepage = () => {
             Greener roads.
           </h1>
 
+         
           {/* Search Form - Modern and Sleek */}
-          <div className="mt-25 mb-8">
+          <form onSubmit={handleSearch} className="mt-25 mb-8">
             <div className="bg-white shadow-xl rounded-2xl p-8 w-full mx-4 border border-gray-200">
               <div className="flex items-end gap-4">
                 <div className="flex-1 grid grid-cols-3 gap-4">
-                  {/* Location Input */}
+                  {/* From Location Input */}
                   <div>
-                    <label className="block text-sm font-medium text-green-700 mb-1">Location</label>
+                    <label className="block text-sm font-medium text-green-700 mb-1">Where</label>
                     <input 
                       type="text" 
                       placeholder="Where from?" 
                       className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      required
                     />
                   </div>
+                  {/* To Location Input */}
                   <div>
-                    <label className="block text-sm font-medium text-green-700 mb-1">Location</label>
+                    <label className="block text-sm font-medium text-green-700 mb-1">To</label>
                     <input 
                       type="text" 
                       placeholder="Where to?" 
                       className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      required
                     />
                   </div>
-
                   {/* Pickup Date */}
                   <div>
                     <label className="block text-sm font-medium text-green-700 mb-1">Pickup</label>
@@ -133,24 +147,20 @@ const RideBuddyHomepage = () => {
                       className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                       value={pickupDate}
                       onChange={(e) => setPickupDate(e.target.value)}
+                      required
                     />
                   </div>
-
-                
                 </div>
-                
                 {/* Search Button - Right side */}
-                <Link to ="/ridepage">
                 <button 
-                  onClick={handleSearch}
+                  type="submit"
                   className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-all shadow-md hover:shadow-lg h-[46px]"
                 >
                   Search
                 </button>
-                </Link>
               </div>
             </div>
-          </div>
+          </form>
         </div>
         
         {/* Vehicle Image */}

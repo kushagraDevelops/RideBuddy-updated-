@@ -61,3 +61,36 @@ export const createRide = async (req, res) => {
   }
 };
 
+
+
+export const searchRides = async (req, res) => {
+  const { from, to, date } = req.query;
+  try {
+    const result = await db.query(
+      `SELECT r.*, u.first_name AS driver_name
+       FROM rides r
+       JOIN users u ON r.driver_id = u.user_id
+       WHERE r.origin ILIKE $1 AND r.destination ILIKE $2 AND DATE(r.departure_time) = $3`,
+      [`%${from}%`, `%${to}%`, date]
+    );
+
+    const stats = {
+      total: result.rowCount,
+      average_price: result.rowCount
+        ? result.rows.reduce((acc, ride) => acc + parseFloat(ride.price_per_seat), 0) / result.rowCount
+        : 0
+    };
+
+    res.json({
+      rides: result.rows,
+      stats,
+      message: `Found ${result.rowCount} rides matching your criteria.`
+    });
+  } catch (error) {
+    console.error('❌ Error searching rides:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
