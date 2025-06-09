@@ -361,7 +361,8 @@ const RideBuddyPage = () => {
                       <p className="text-xl font-bold text-indigo-600">₹{ride.price_per_seat}</p>
                       <p className="text-xs text-gray-500">per seat</p>
                     </div>
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-300">
+                    <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-300"
+                    onClick={()=>navigate(`/ride/${ride.ride_id}/confirm`)}>
                       Request to Join
                     </button>
                   </div>
@@ -464,3 +465,6 @@ const RideBuddyPage = () => {
 };
 
 export default RideBuddyPage;
+
+
+

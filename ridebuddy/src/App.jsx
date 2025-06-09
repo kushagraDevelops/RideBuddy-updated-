@@ -8,6 +8,7 @@ import ProfilePage from './assets/components/profile';
 import PostRideForm from './assets/components/postride';
 import AuthForm from './assets/components/AuthForm';
 import ProtectedRoute from './assets/components/protectedRoute';
+import ConfirmationPage from './assets/components/confirmPage';
 
 function App() {
   return (  
@@ -40,10 +41,19 @@ function App() {
             <PostRideForm />
           </ProtectedRoute>
         } />
+         <Route path="/ride/:rideId/confirm" element={
+          <ProtectedRoute>
+            < ConfirmationPage/>
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
+
+
+
 
