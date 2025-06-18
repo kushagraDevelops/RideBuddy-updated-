@@ -91,3 +91,26 @@ export const searchRides = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+export const getRideById = async (req, res) => {
+  const { rideId } = req.params;
+  try {
+    const result = await db.query(
+      `SELECT r.*, u.first_name AS driver_name
+       FROM rides r
+       JOIN users u ON r.driver_id = u.user_id
+       WHERE r.ride_id = $1`,
+      [rideId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+    res.json({ ride: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error fetching ride:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+

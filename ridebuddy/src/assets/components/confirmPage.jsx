@@ -1,37 +1,32 @@
-import React, { useState } from 'react';
-import { MapPin, Clock, User, Car, Phone, Star, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { MapPin, Clock, User, Phone, Star, X } from 'lucide-react';
 
 const ConfirmationPage = () => {
+  const { rideId } = useParams();
+  const [rideData, setRideData] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
-  // Sample ride data
-  const rideData = {
-    driver: {
-      name: "Sarah Johnson",
-      rating: 4.8,
-      phone: "+1 (555) 123-4567",
-      profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b047?w=150&h=150&fit=crop&crop=face"
-    },
-    route: {
-      from: "Downtown Plaza, San Francisco",
-      to: "Tech Park, Mountain View",
-      duration: "45 min",
-      distance: "28 miles"
-    },
-    schedule: {
-      date: "Today, March 15",
-      time: "8:30 AM",
-      seats: 2
-    },
-    price: 12
-  };
+  useEffect(() => {
+  fetch(`http://localhost:5000/api/rides/${rideId}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(data => setRideData(data.ride))
+    .catch(err => {
+      console.error('Failed to fetch ride:', err);
+      // Optionally show error to user
+    });
+}, [rideId]);
 
-  const handleConfirm = async () => {
+    const handleConfirm = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // TODO: Send booking request to backend here
     setIsLoading(false);
     setConfirmed(true);
     setTimeout(() => {
@@ -58,15 +53,15 @@ const ConfirmationPage = () => {
   if (confirmed) {
     return (
       <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{
-      background: `
-        radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(5, 150, 105, 0.2) 0%, transparent 50%),
-        linear-gradient(135deg, rgba(220, 252, 231, 0.8), rgba(187, 247, 208, 0.8))
-      `,
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)'
-    }}>
+        background: `
+          radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(5, 150, 105, 0.2) 0%, transparent 50%),
+          linear-gradient(135deg, rgba(220, 252, 231, 0.8), rgba(187, 247, 208, 0.8))
+        `,
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)'
+      }}>
         <div className="bg-white rounded-2xl p-8 text-center max-w-md w-full transform animate-pulse">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,11 +69,16 @@ const ConfirmationPage = () => {
             </svg>
           </div>
           <h3 className="text-xl font-bold text-gray-800 mb-2">Request Sent!</h3>
-          <p className="text-gray-600">Sarah will be notified about your request.</p>
+          <p className="text-gray-600">{rideData?.driver_name || 'Driver'} will be notified about your request.</p>
         </div>
       </div>
     );
   }
+
+  if (!rideData) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{
@@ -108,18 +108,19 @@ const ConfirmationPage = () => {
           {/* Driver Info */}
           <div className="flex items-center space-x-4 bg-green-50 p-4 rounded-2xl border border-green-100">
             <img 
-              src={rideData.driver.profileImage} 
-              alt={rideData.driver.name}
+              src={"/api/placeholder/60/60"}
+              alt={rideData.driver_name}
               className="w-16 h-16 rounded-full object-cover border-2 border-green-200"
             />
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-800 text-lg">{rideData.driver.name}</h3>
+              <h3 className="font-semibold text-gray-800 text-lg">{rideData.driver_name}</h3>
+              {/* If you have driver rating/phone, render here */}
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span>{rideData.driver.rating}</span>
-                <span>•</span>
+                <span>{rideData.driver_rating || 'N/A'}</span>
+                {/* <span>•</span>
                 <Phone className="w-4 h-4" />
-                <span>{rideData.driver.phone}</span>
+                <span>{rideData.driver_phone || 'N/A'}</span> */}
               </div>
             </div>
           </div>
@@ -127,35 +128,39 @@ const ConfirmationPage = () => {
           {/* Route Details */}
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-800 text-lg">Route Details</h4>
-            
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full mt-2"></div>
                 <div>
                   <p className="font-medium text-gray-800">From</p>
-                  <p className="text-gray-600 text-sm">{rideData.route.from}</p>
+                  <p className="text-gray-600 text-sm">{rideData.origin}</p>
                 </div>
               </div>
-              
               <div className="ml-1.5 border-l-2 border-dashed border-green-300 h-8"></div>
-              
               <div className="flex items-start space-x-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full mt-2"></div>
                 <div>
                   <p className="font-medium text-gray-800">To</p>
-                  <p className="text-gray-600 text-sm">{rideData.route.to}</p>
+                  <p className="text-gray-600 text-sm">{rideData.destination}</p>
                 </div>
               </div>
             </div>
-
             <div className="flex items-center justify-between bg-gray-50 p-3 rounded-xl">
               <div className="flex items-center space-x-2 text-gray-600">
                 <Clock size={16} />
-                <span className="text-sm">{rideData.route.duration}</span>
+                <span className="text-sm">
+                  {rideData.departure_time
+                    ? new Date(rideData.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : ''}
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <MapPin size={16} />
-                <span className="text-sm">{rideData.route.distance}</span>
+                <span className="text-sm">
+                  {rideData.departure_time
+                    ? new Date(rideData.departure_time).toLocaleDateString()
+                    : ''}
+                </span>
               </div>
             </div>
           </div>
@@ -164,13 +169,20 @@ const ConfirmationPage = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
               <h5 className="font-semibold text-gray-800 mb-2">Schedule</h5>
-              <p className="text-sm text-gray-600 mb-1">{rideData.schedule.date}</p>
-              <p className="text-lg font-bold text-blue-600">{rideData.schedule.time}</p>
+              <p className="text-sm text-gray-600 mb-1">
+                {rideData.departure_time
+                  ? new Date(rideData.departure_time).toLocaleDateString()
+                  : ''}
+              </p>
+              <p className="text-lg font-bold text-blue-600">
+                {rideData.departure_time
+                  ? new Date(rideData.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : ''}
+              </p>
             </div>
-            
             <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
               <h5 className="font-semibold text-gray-800 mb-2">Price</h5>
-              <p className="text-2xl font-bold text-green-600">${rideData.price}</p>
+              <p className="text-2xl font-bold text-green-600">Rs.{rideData.price_per_seat}</p>
               <p className="text-xs text-gray-500">per person</p>
             </div>
           </div>
@@ -181,7 +193,7 @@ const ConfirmationPage = () => {
               <User className="w-5 h-5 text-amber-600" />
               <span className="font-medium text-gray-800">Available Seats</span>
             </div>
-            <span className="font-bold text-amber-600">{rideData.schedule.seats} left</span>
+            <span className="font-bold text-amber-600">{rideData.available_seats} left</span>
           </div>
 
           {/* Action Buttons */}
@@ -221,3 +233,5 @@ const ConfirmationPage = () => {
 };
 
 export default ConfirmationPage;
+
+
