@@ -114,3 +114,43 @@ export const getRideById = async (req, res) => {
 };
 
 
+export const createBooking = async (req, res) => {
+  const { rideId, seats } = req.body;
+  const passengerId = req.user.userId; // Securely extracted from JWT
+
+  try {
+    // 1. Check seat availability
+    const rideResult = await db.query(
+      `SELECT available_seats FROM rides WHERE ride_id = $1`,
+      [rideId]
+    );
+    if (!rideResult.rows.length) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+    if (rideResult.rows[0].available_seats < seats) {
+      return res.status(400).json({ message: 'Not enough seats available' });
+    }
+
+    // 2. Create booking
+    const bookingResult = await db.query(
+      `INSERT INTO bookings (ride_id, passenger_id, seats, status)
+       VALUES ($1, $2, $3, 'pending')
+       RETURNING *`,
+      [rideId, passengerId, seats]
+    );
+
+    // 3. Update available seats
+    await db.query(
+      `UPDATE rides SET available_seats = available_seats - $1 WHERE ride_id = $2`,
+      [seats, rideId]
+    );
+
+    res.status(201).json({
+      message: 'Booking created',
+      booking: bookingResult.rows[0]
+    });
+  } catch (error) {
+    console.error('Booking creation error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

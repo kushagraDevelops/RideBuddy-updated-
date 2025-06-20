@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Clock, User, Phone, Star, X } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Star, X, Users, MessageCircle } from 'lucide-react';
 
 const ConfirmationPage = () => {
   const { rideId } = useParams();
@@ -8,31 +8,77 @@ const ConfirmationPage = () => {
   const [showConfirmation, setShowConfirmation] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  
+  // User input states
+  const [selectedSeats, setSelectedSeats] = useState(1);
+  const [dropoffLocation, setDropoffLocation] = useState('');
+  const [specialRequests, setSpecialRequests] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
 
   useEffect(() => {
-  fetch(`http://localhost:5000/api/rides/${rideId}`)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then(data => setRideData(data.ride))
-    .catch(err => {
-      console.error('Failed to fetch ride:', err);
-      // Optionally show error to user
-    });
-}, [rideId]);
+    fetch(`http://localhost:5000/api/rides/${rideId}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => setRideData(data.ride))
+      .catch(err => {
+        console.error('Failed to fetch ride:', err);
+        // Optionally show error to user
+      });
+  }, [rideId]);
 
-    const handleConfirm = async () => {
-    setIsLoading(true);
-    // TODO: Send booking request to backend here
-    setIsLoading(false);
-    setConfirmed(true);
-    setTimeout(() => {
-      setShowConfirmation(false);
-    }, 3000);
+  const handleSeatChange = (increment) => {
+    const newSeats = selectedSeats + increment;
+    if (newSeats >= 1 && newSeats <= rideData.available_seats) {
+      setSelectedSeats(newSeats);
+    }
   };
+
+ const handleConfirm = async () => {
+  setIsLoading(true);
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You must be logged in to book a ride.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Example: You can let user choose seats, payment method, etc.
+    const bookingPayload = {
+      rideId: rideData.ride_id,
+      seats: 1, // or user-selected
+      totalAmount: rideData.price_per_seat * 1, // adjust for seats
+      paymentMethod: "cash" // or "online", etc.
+    };
+
+    const response = await fetch('http://localhost:5000/api/bookings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(bookingPayload),
+    });
+
+    if (response.ok) {
+      setConfirmed(true);
+      setTimeout(() => setShowConfirmation(false), 3000);
+    } else {
+      const data = await response.json();
+      alert(data.message || 'Booking failed');
+    }
+  } catch (err) {
+    alert('Booking error. Please try again.');
+    console.error('Booking error:', err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   if (!showConfirmation) {
     return (
@@ -70,6 +116,10 @@ const ConfirmationPage = () => {
           </div>
           <h3 className="text-xl font-bold text-gray-800 mb-2">Request Sent!</h3>
           <p className="text-gray-600">{rideData?.driver_name || 'Driver'} will be notified about your request.</p>
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Seats: {selectedSeats}</p>
+            <p>Total: Rs. {rideData?.price_per_seat * selectedSeats}</p>
+          </div>
         </div>
       </div>
     );
@@ -78,7 +128,6 @@ const ConfirmationPage = () => {
   if (!rideData) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
-
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{
@@ -101,7 +150,7 @@ const ConfirmationPage = () => {
             <X size={20} />
           </button>
           <h2 className="text-2xl font-bold text-white mb-2">Confirm Your Ride</h2>
-          <p className="text-green-100">Review details before requesting</p>
+          <p className="text-green-100">Review details and provide your information</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -114,13 +163,95 @@ const ConfirmationPage = () => {
             />
             <div className="flex-1">
               <h3 className="font-semibold text-gray-800 text-lg">{rideData.driver_name}</h3>
-              {/* If you have driver rating/phone, render here */}
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                 <span>{rideData.driver_rating || 'N/A'}</span>
-                {/* <span>•</span>
-                <Phone className="w-4 h-4" />
-                <span>{rideData.driver_phone || 'N/A'}</span> */}
+              </div>
+            </div>
+          </div>
+
+          {/* Seat Selection */}
+          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+            <h4 className="font-semibold text-gray-800 text-lg mb-3">Select Seats</h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => handleSeatChange(-1)}
+                  disabled={selectedSeats <= 1}
+                  className="w-10 h-10 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center text-blue-600 font-bold hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  -
+                </button>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <span className="text-2xl font-bold text-blue-600">{selectedSeats}</span>
+                </div>
+                <button
+                  onClick={() => handleSeatChange(1)}
+                  disabled={selectedSeats >= rideData.available_seats}
+                  className="w-10 h-10 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center text-blue-600 font-bold hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  +
+                </button>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-xl font-bold text-blue-600">Rs. {rideData.price_per_seat * selectedSeats}</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">{rideData.available_seats} seats available</p>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-800 text-lg">Your Information</h4>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Number *
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="tel"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
+                  placeholder="Your phone number"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Drop-off Location (Optional)
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={dropoffLocation}
+                  onChange={(e) => setDropoffLocation(e.target.value)}
+                  placeholder={`Default: ${rideData.destination}`}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Special Requests (Optional)
+              </label>
+              <div className="relative">
+                <MessageCircle className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
+                <textarea
+                  value={specialRequests}
+                  onChange={(e) => setSpecialRequests(e.target.value)}
+                  placeholder="Any special requirements or notes for the driver..."
+                  rows={3}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                />
               </div>
             </div>
           </div>
@@ -165,7 +296,7 @@ const ConfirmationPage = () => {
             </div>
           </div>
 
-          {/* Schedule & Price */}
+          {/* Schedule & Price Summary */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
               <h5 className="font-semibold text-gray-800 mb-2">Schedule</h5>
@@ -181,19 +312,10 @@ const ConfirmationPage = () => {
               </p>
             </div>
             <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
-              <h5 className="font-semibold text-gray-800 mb-2">Price</h5>
-              <p className="text-2xl font-bold text-green-600">Rs.{rideData.price_per_seat}</p>
-              <p className="text-xs text-gray-500">per person</p>
+              <h5 className="font-semibold text-gray-800 mb-2">Total Price</h5>
+              <p className="text-2xl font-bold text-green-600">Rs. {rideData.price_per_seat * selectedSeats}</p>
+              <p className="text-xs text-gray-500">{selectedSeats} seat{selectedSeats > 1 ? 's' : ''}</p>
             </div>
-          </div>
-
-          {/* Available Seats */}
-          <div className="flex items-center justify-between bg-amber-50 p-3 rounded-xl border border-amber-100">
-            <div className="flex items-center space-x-2">
-              <User className="w-5 h-5 text-amber-600" />
-              <span className="font-medium text-gray-800">Available Seats</span>
-            </div>
-            <span className="font-bold text-amber-600">{rideData.available_seats} left</span>
           </div>
 
           {/* Action Buttons */}
@@ -206,7 +328,7 @@ const ConfirmationPage = () => {
             </button>
             <button
               onClick={handleConfirm}
-              disabled={isLoading}
+              disabled={isLoading || !contactNumber.trim()}
               className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center justify-center space-x-2"
             >
               {isLoading ? (
@@ -233,5 +355,3 @@ const ConfirmationPage = () => {
 };
 
 export default ConfirmationPage;
-
-
