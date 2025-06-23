@@ -1,9 +1,12 @@
 import db from '../config/db.js';
 
 export const createBooking = async (req, res) => {
+    console.log('🔍 req.user:', req.user);
+  console.log('🔍 passengerId:', req.user?.userId);
+
   const { rideId, seats, totalAmount, paymentMethod } = req.body;
   const passengerId = req.user.userId; // Securely extracted from JWT
-
+  console.log(passengerId)
   try {
     // 1. Check seat availability
     const rideResult = await db.query(

@@ -62,7 +62,7 @@ export default pool;
 //     total_amount DECIMAL(10,2) NOT NULL,
 //     payment_status VARCHAR(20) DEFAULT 'unpaid',
 //     payment_method VARCHAR(50),
-//     payment_id VARCHAR(255),
+//     payment_id VARCHAR(255), 
 //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 //     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 // );

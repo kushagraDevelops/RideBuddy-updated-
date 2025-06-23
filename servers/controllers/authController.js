@@ -23,13 +23,14 @@ export const registerUser = async (req, res) => {
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [email, hashedPassword, first_name, last_name, phone_number]
     );
+    console.log(newUser.rows[0].user_id);
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: newUser.rows[0].id, email: newUser.rows[0].email },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+  { userId: newUser.rows[0].user_id, email: newUser.rows[0].email }, // CHANGE .id → .user_id
+  JWT_SECRET,
+  { expiresIn: '1h' }
+);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -61,11 +62,13 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+   const token = jwt.sign(
+  { userId: user.user_id, email: user.email },
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' }
+);
+
+console.log(user.user_id, user.email, token)
 
     res.status(200).json({
       message: 'Login successful',
