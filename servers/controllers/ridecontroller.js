@@ -1,7 +1,9 @@
 import db from '../config/db.js';
 
+
 export const createRide = async (req, res) => {
   try {
+    console.log(req.user.userId); // Log the user ID for debugging
     const {
       startLocation,
       destination,
@@ -20,7 +22,7 @@ export const createRide = async (req, res) => {
 
     const departure_time = `${departureDate} ${departureTime}`;
     const estimated_arrival_time = expectedReachingTime ? `${departureDate} ${expectedReachingTime}` : null;
-    const driver_id = req.user?.userId || 4;
+    const driver_id = req.user.userId;
 
     // Log the data for debugging
     console.log('Inserting ride:', {
