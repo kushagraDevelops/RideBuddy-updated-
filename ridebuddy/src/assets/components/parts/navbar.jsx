@@ -21,7 +21,7 @@ function Navbar(){
                       
                       <Link to="/postride" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-[#333333]">Offer Ride</Link>
 
-                      <Link to="/RideOffer" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-[#333333]">My Rides</Link>
+                      <Link to="/MyRides" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-[#333333]">My Rides</Link>
 
                       <Link to="/profile" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-[#333333]">Profile</Link>
                     </div>

@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './assets/components/parts/navbar';
 import RideBuddyHomepage from './assets/components/homepage';
 import RideBuddyPage from './assets/components/ridepage';
-import RideOffer from './assets/components/rideoffer';
+import MyRides from './assets/components/myRides';
 import ProfilePage from './assets/components/profile';
 import PostRideForm from './assets/components/postride';
 import AuthForm from './assets/components/AuthForm';
 import ProtectedRoute from './assets/components/protectedRoute';
 import ConfirmationPage from './assets/components/confirmPage';
+import RideBookingManager from './assets/components/manageRide';
 
 function App() {
   return (  
@@ -26,9 +27,9 @@ function App() {
             <RideBuddyPage />
           </ProtectedRoute>
         } />
-        <Route path="/RideOffer" element={
+        <Route path="/MyRides" element={
           <ProtectedRoute>
-            <RideOffer />
+            <MyRides />
           </ProtectedRoute>
         } />
         <Route path="/profile" element={
@@ -44,6 +45,11 @@ function App() {
          <Route path="/ride/:rideId/confirm" element={
           <ProtectedRoute>
             < ConfirmationPage/>
+          </ProtectedRoute>
+        } />\
+        <Route path="MyRides/manage" element={
+          <ProtectedRoute>
+            <RideBookingManager />
           </ProtectedRoute>
         } />
       </Routes>

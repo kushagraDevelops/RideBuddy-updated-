@@ -94,4 +94,3 @@ export const getPassengerRides = async (req, res) => {
 };
 
 
-

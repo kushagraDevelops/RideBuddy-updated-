@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Star } from 'lucide-react';
 
-function RideOffer() {
+function MyRides() {
   const [activeTab, setActiveTab] = useState('joined');
   const [joinedRides, setJoinedRides] = useState([]);
   const [offeringRides, setOfferingRides] = useState([]);
@@ -148,9 +148,11 @@ function RideOffer() {
                 ></div>
               </div>
             </div>
+            <a href="/MyRides/manage">
             <button className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-medium py-1 px-3 rounded-md text-sm transition duration-300">
               Manage
             </button>
+            </a>
           </div>
         </>
       )}
@@ -212,5 +214,4 @@ function RideOffer() {
   );
 }
 
-export default RideOffer;
-
+export default MyRides;
