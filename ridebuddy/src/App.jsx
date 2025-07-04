@@ -47,7 +47,7 @@ function App() {
             < ConfirmationPage/>
           </ProtectedRoute>
         } />\
-        <Route path="MyRides/manage" element={
+         <Route path="MyRides/manage/:rideId" element={
           <ProtectedRoute>
             <RideBookingManager />
           </ProtectedRoute>

@@ -1,108 +1,152 @@
-import React, { useState } from 'react';
-import { Check, X, User, MapPin, Calendar, Clock, Phone, Mail, Car, Users, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Check, X, User, MapPin, Calendar, Clock, Phone, Mail, Car, Users, ArrowLeft, Loader } from 'lucide-react';
 
-const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
-  // Sample data - in real app, this would be filtered by rideId from your API
-  const [bookingRequests, setBookingRequests] = useState([
-    {
-      id: 1,
-      rideId: 'R001',
-      passengerName: 'Rahul Sharma',
-      passengerEmail: 'rahul.sharma@email.com',
-      passengerPhone: '+91 9876543210',
-      requestedSeats: 2,
-      totalFare: 800,
-      requestDate: '2025-06-25',
-      requestTime: '14:30',
-      status: 'pending',
-      passengerRating: 4.5,
-      passengerTrips: 15,
-      passengerAvatar: 'RS'
-    },
-    {
-      id: 2,
-      rideId: 'R001',
-      passengerName: 'Priya Patel',
-      passengerEmail: 'priya.patel@email.com',
-      passengerPhone: '+91 9876543211',
-      requestedSeats: 1,
-      totalFare: 400,
-      requestDate: '2025-06-26',
-      requestTime: '16:45',
-      status: 'pending',
-      passengerRating: 4.8,
-      passengerTrips: 23,
-      passengerAvatar: 'PP'
-    },
-    {
-      id: 3,
-      rideId: 'R001',
-      passengerName: 'Arjun Kumar',
-      passengerEmail: 'arjun.kumar@email.com',
-      passengerPhone: '+91 9876543212',
-      requestedSeats: 1,
-      totalFare: 400,
-      requestDate: '2025-06-27',
-      requestTime: '10:15',
-      status: 'confirmed',
-      passengerRating: 4.2,
-      passengerTrips: 8,
-      passengerAvatar: 'AK'
-    },
-    {
-      id: 4,
-      rideId: 'R001',
-      passengerName: 'Sneha Reddy',
-      passengerEmail: 'sneha.reddy@email.com',
-      passengerPhone: '+91 9876543213',
-      requestedSeats: 2,
-      totalFare: 800,
-      requestDate: '2025-06-24',
-      requestTime: '12:30',
-      status: 'rejected',
-      passengerRating: 4.6,
-      passengerTrips: 12,
-      passengerAvatar: 'SR'
+const RideBookingManager = ({ onBack }) => {
+  const { rideId } = useParams(); // Get rideId from URL parameters
+  console.log('Ride ID from URL:', rideId); // Debug log
+  const [rideDetails, setRideDetails] = useState(null);
+  const [bookingRequests, setBookingRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch ride details and bookings
+  useEffect(() => {
+    const fetchRideData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get token from localStorage (you might need to adjust this based on your auth implementation)
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        console.log('Fetching data for ride ID:', rideId); // Debug log
+        
+        const response = await fetch(`http://localhost:5000/api/bookings/driver/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('Response status:', response.status); // Debug log
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received data:', data); // Debug log
+        
+        // Set ride details
+        setRideDetails(data.ride);
+        
+        // Transform bookings to match your existing component structure
+        const transformedBookings = data.bookings.map(booking => ({
+          id: booking.booking_id,
+          rideId: rideId,
+          passengerName: `${booking.first_name} ${booking.last_name}`,
+          passengerEmail: booking.email,
+          passengerPhone: booking.phone_number,
+          requestedSeats: booking.seats_booked,
+          totalFare: booking.total_amount,
+          requestDate: new Date(booking.created_at).toLocaleDateString(),
+          requestTime: new Date(booking.created_at).toLocaleTimeString(),
+          status: booking.booking_status, // pending, confirmed, rejected
+          passengerRating: booking.rating || 0,
+          passengerTrips: 0, // You might want to add this to your database
+          passengerAvatar: booking.profile_pic || `${booking.first_name.charAt(0)}${booking.last_name.charAt(0)}`,
+          userId: booking.passenger_id
+        }));
+        
+        setBookingRequests(transformedBookings);
+      } catch (err) {
+        console.error('Error fetching ride data:', err); // Debug log
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (rideId) {
+      fetchRideData();
+    } else {
+      setError('No ride ID provided');
+      setLoading(false);
     }
-  ]);
+  }, [rideId]);
 
-  // Default ride details if not provided
-  const defaultRideDetails = {
-    id: rideId || 'R001',
-    title: 'Mumbai to Pune',
-    from: 'Andheri Station, Mumbai',
-    to: 'Pune Station, Pune',
-    date: '2025-07-02',
-    time: '09:00',
-    availableSeats: 4,
-    pricePerSeat: 400,
-    totalDistance: '148 km',
-    estimatedDuration: '3h 30m'
+  const handleConfirm = async (requestId) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/bookings/${requestId}/confirm`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setBookingRequests(prev => 
+          prev.map(request => 
+            request.id === requestId 
+              ? { ...request, status: 'confirmed' }
+              : request
+          )
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to confirm booking');
+      }
+    } catch (err) {
+      console.error('Error confirming booking:', err);
+      alert('Error confirming booking: ' + err.message);
+    }
   };
 
-  const currentRide = rideDetails || defaultRideDetails;
-  
-  // Filter requests for current ride
-  const rideRequests = bookingRequests.filter(request => request.rideId === currentRide.id);
+  const handleReject = async (requestId) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      const response = await fetch(`/api/bookings/${requestId}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-  const handleConfirm = (requestId) => {
-    setBookingRequests(prev => 
-      prev.map(request => 
-        request.id === requestId 
-          ? { ...request, status: 'confirmed' }
-          : request
-      )
-    );
-  };
-
-  const handleReject = (requestId) => {
-    setBookingRequests(prev => 
-      prev.map(request => 
-        request.id === requestId 
-          ? { ...request, status: 'rejected' }
-          : request
-      )
-    );
+      if (response.ok) {
+        setBookingRequests(prev => 
+          prev.map(request => 
+            request.id === requestId 
+              ? { ...request, status: 'rejected' }
+              : request
+          )
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to reject booking');
+      }
+    } catch (err) {
+      console.error('Error rejecting booking:', err);
+      alert('Error rejecting booking: ' + err.message);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -118,9 +162,66 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
     }
   };
 
-  const pendingRequests = rideRequests.filter(req => req.status === 'pending');
-  const confirmedRequests = rideRequests.filter(req => req.status === 'confirmed');
-  const rejectedRequests = rideRequests.filter(req => req.status === 'rejected');
+  // Format date and time
+  const formatDateTime = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return 'Not specified';
+    return `${new Date(dateStr).toLocaleDateString()} at ${timeStr}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 flex items-center">
+          <Loader className="animate-spin mr-3 text-green-600" size={24} />
+          <span className="text-gray-700">Loading ride details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <X className="mx-auto mb-4 text-red-500" size={48} />
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Ride</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!rideDetails) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <Car className="mx-auto mb-4 text-gray-400" size={48} />
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Ride Not Found</h3>
+          <p className="text-gray-600">The requested ride could not be found.</p>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="mt-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const pendingRequests = bookingRequests.filter(req => req.status === 'pending');
+  const confirmedRequests = bookingRequests.filter(req => req.status === 'confirmed');
+  const rejectedRequests = bookingRequests.filter(req => req.status === 'rejected');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 p-4">
@@ -138,32 +239,36 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
             )}
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-800 mb-1">Manage Ride Requests</h1>
-              <p className="text-gray-600 text-sm">Ride ID: {currentRide.id}</p>
+              <p className="text-gray-600 text-sm">Ride ID: {rideDetails.ride_id}</p>
             </div>
           </div>
 
           {/* Ride Details Card */}
           <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-lg mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">{currentRide.title}</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              {rideDetails.origin} → {rideDetails.destination}
+            </h2>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
                 <div className="flex items-center text-gray-700">
                   <MapPin className="mr-2 text-green-600" size={16} />
-                  <span>{currentRide.from}</span>
+                  <span>{rideDetails.origin}</span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <MapPin className="mr-2 text-red-500" size={16} />
-                  <span>{currentRide.to}</span>
+                  <span>{rideDetails.destination}</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center text-gray-700">
                   <Calendar className="mr-2 text-blue-500" size={16} />
-                  <span>{currentRide.date} at {currentRide.time}</span>
+                  <span>
+                    {formatDateTime(rideDetails.departure_date, rideDetails.departure_time)}
+                  </span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <Users className="mr-2 text-purple-500" size={16} />
-                  <span>{currentRide.availableSeats} seats • ₹{currentRide.pricePerSeat}/seat</span>
+                  <span>{rideDetails.available_seats} seats • ₹{rideDetails.price_per_seat}/seat</span>
                 </div>
               </div>
             </div>
@@ -199,7 +304,9 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-4">
-                        {request.passengerAvatar}
+                        {typeof request.passengerAvatar === 'string' && request.passengerAvatar.length <= 2 
+                          ? request.passengerAvatar 
+                          : request.passengerName.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">{request.passengerName}</h3>
@@ -282,7 +389,9 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                        {request.passengerAvatar}
+                        {typeof request.passengerAvatar === 'string' && request.passengerAvatar.length <= 2 
+                          ? request.passengerAvatar 
+                          : request.passengerName.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-800">{request.passengerName}</h3>
@@ -310,7 +419,9 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                        {request.passengerAvatar}
+                        {typeof request.passengerAvatar === 'string' && request.passengerAvatar.length <= 2 
+                          ? request.passengerAvatar 
+                          : request.passengerName.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-800">{request.passengerName}</h3>
@@ -326,7 +437,7 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
         )}
 
         {/* Empty State */}
-        {rideRequests.length === 0 && (
+        {bookingRequests.length === 0 && (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
             <Users className="mx-auto mb-4 text-gray-400" size={64} />
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No Booking Requests</h3>
@@ -339,3 +450,4 @@ const RideBookingManager = ({ rideId, rideDetails, onBack }) => {
 };
 
 export default RideBookingManager;
+

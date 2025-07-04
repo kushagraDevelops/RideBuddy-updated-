@@ -94,3 +94,103 @@ export const getPassengerRides = async (req, res) => {
 };
 
 
+export const getRideBookings = async (req, res) => {
+  const { rideId } = req.params;
+  const driverId = req.user.userId;
+
+  try {
+    // Check if the logged-in user is the driver of this ride AND fetch ride details
+    const rideQuery = await db.query(
+      `SELECT * FROM rides WHERE ride_id = $1 AND driver_id = $2`,
+      [rideId, driverId]
+    );
+    
+    if (!rideQuery.rows.length) {
+      return res.status(403).json({ message: 'Unauthorized or ride not found' });
+    }
+
+    const ride = rideQuery.rows[0];
+
+    // Fetch all bookings for this ride
+    const bookingsQuery = await db.query(
+      `SELECT b.booking_id, b.seats_booked, b.booking_status, b.total_amount, b.created_at, b.passenger_id,
+              u.first_name, u.last_name, u.email, u.phone_number, u.profile_pic, u.average_rating
+       FROM bookings b
+       JOIN users u ON b.passenger_id = u.user_id
+       WHERE b.ride_id = $1
+       ORDER BY b.created_at ASC`,
+      [rideId]
+    );
+
+    // Return both ride details and bookings
+    res.json({ 
+      ride: ride,
+      bookings: bookingsQuery.rows 
+    });
+  } catch (error) {
+    console.error('Error fetching ride bookings:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const confirmBooking = async (req, res) => {
+  const { bookingId } = req.params;
+  const driverId = req.user.userId;
+
+  try {
+    // First, verify that the logged-in user is the driver for this booking
+    const verifyQuery = await db.query(
+      `SELECT r.driver_id 
+       FROM bookings b 
+       JOIN rides r ON b.ride_id = r.ride_id 
+       WHERE b.booking_id = $1`,
+      [bookingId]
+    );
+
+    if (!verifyQuery.rows.length || verifyQuery.rows[0].driver_id !== driverId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Update booking status to confirmed
+    await db.query(
+      'UPDATE bookings SET booking_status = $1 WHERE booking_id = $2',
+      ['confirmed', bookingId]
+    );
+
+    res.json({ message: 'Booking confirmed successfully' });
+  } catch (error) {
+    console.error('Error confirming booking:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const rejectBooking = async (req, res) => {
+  const { bookingId } = req.params;
+  const driverId = req.user.userId;
+
+  try {
+    // First, verify that the logged-in user is the driver for this booking
+    const verifyQuery = await db.query(
+      `SELECT r.driver_id 
+       FROM bookings b 
+       JOIN rides r ON b.ride_id = r.ride_id 
+       WHERE b.booking_id = $1`,
+      [bookingId]
+    );
+
+    if (!verifyQuery.rows.length || verifyQuery.rows[0].driver_id !== driverId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Update booking status to rejected
+    await db.query(
+      'UPDATE bookings SET booking_status = $1 WHERE booking_id = $2',
+      ['rejected', bookingId]
+    );
+
+    res.json({ message: 'Booking rejected successfully' });
+  } catch (error) {
+    console.error('Error rejecting booking:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

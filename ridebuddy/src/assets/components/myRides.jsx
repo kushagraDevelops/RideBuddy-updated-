@@ -148,7 +148,7 @@ function MyRides() {
                 ></div>
               </div>
             </div>
-            <a href="/MyRides/manage">
+            <a href={`/MyRides/manage/${ride.ride_id}`}>
             <button className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-medium py-1 px-3 rounded-md text-sm transition duration-300">
               Manage
             </button>
@@ -215,3 +215,5 @@ function MyRides() {
 }
 
 export default MyRides;
+
+
