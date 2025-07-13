@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [email, hashedPassword, first_name, last_name, phone_number]
     );
-    console.log(newUser.rows[0].user_id);
+    // console.log(newUser.rows[0].user_id);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -37,6 +37,7 @@ export const registerUser = async (req, res) => {
       user: newUser.rows[0],
       token, // <-- send token here
     });
+
   } catch (error) {
     console.error('❌ Error registering user:', error.message);
     res.status(500).json({ message: 'Internal server error' });
@@ -68,7 +69,7 @@ export const loginUser = async (req, res) => {
   { expiresIn: '1h' }
 );
 
-console.log(user.user_id, user.email, token)
+// console.log(user.user_id, user.email, token)
 
     res.status(200).json({
       message: 'Login successful',

@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/authMiddleware.js';
 import { getDriverRides, getPassengerRides } from '../controllers/bookingController.js';
 import { getRideBookings } from '../controllers/bookingController.js';
 import { confirmBooking,rejectBooking } from '../controllers/bookingController.js';
+import { getDriverContactInfo } from '../controllers/bookingController.js';
 
 
 const router = express.Router();
@@ -13,6 +14,8 @@ router.get('/passenger', authenticate, getPassengerRides);
 router.get('/driver/:rideId', authenticate, getRideBookings);
 router.put('/:bookingId/confirm', authenticate, confirmBooking);
 router.put('/:bookingId/reject', authenticate, rejectBooking);
+router.get('/contact/:bookingId', authenticate, getDriverContactInfo);
+
 
 
 export default router;

@@ -10,6 +10,7 @@ import AuthForm from './assets/components/AuthForm';
 import ProtectedRoute from './assets/components/protectedRoute';
 import ConfirmationPage from './assets/components/confirmPage';
 import RideBookingManager from './assets/components/manageRide';
+import ContactModal from './assets/components/contact';
 
 function App() {
   return (  
@@ -50,6 +51,11 @@ function App() {
          <Route path="MyRides/manage/:rideId" element={
           <ProtectedRoute>
             <RideBookingManager />
+          </ProtectedRoute>
+        } />
+          <Route path="MyRides/manage/contact" element={
+          <ProtectedRoute>
+            <ConfirmationPage />
           </ProtectedRoute>
         } />
       </Routes>

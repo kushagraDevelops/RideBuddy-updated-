@@ -75,7 +75,7 @@ const RideBuddyPage = () => {
   setError('');
   
   try {
-    // This matches your backend endpoint exactly
+    
     const response = await fetch(
       `http://localhost:5000/api/rides/search?from=${encodeURIComponent(params.from)}&to=${encodeURIComponent(params.to)}&date=${params.date}`
     );

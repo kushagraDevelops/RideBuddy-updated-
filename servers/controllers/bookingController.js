@@ -194,3 +194,46 @@ export const rejectBooking = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+export const getDriverContactInfo = async (req, res) => {
+  const { bookingId } = req.params;
+  const passengerId = req.user.userId; // from authentication middleware
+
+  // 1. Fetch booking and check passenger & status
+  const bookingResult = await db.query(
+    `SELECT b.ride_id, b.booking_status, r.driver_id
+     FROM bookings b
+     JOIN rides r ON b.ride_id = r.ride_id
+     WHERE b.booking_id = $1 AND b.passenger_id = $2`,
+    [bookingId, passengerId]
+  );
+  if (!bookingResult.rows.length) {
+    return res.status(404).json({ message: 'Booking not found or unauthorized' });
+  }
+  const { ride_id, booking_status, driver_id } = bookingResult.rows[0];
+  if (booking_status !== 'confirmed') {
+    return res.status(403).json({ message: 'Contact info available only after confirmation' });
+  }
+
+  // 2. Fetch driver contact info
+  const driverResult = await db.query(
+    `SELECT first_name, last_name, phone_number, email, profile_pic
+     FROM users WHERE user_id = $1`,
+    [driver_id]
+  );
+  if (!driverResult.rows.length) {
+    return res.status(404).json({ message: 'Driver not found' });
+  }
+
+  // 3. Return driver info (do NOT include sensitive info like password)
+  const driver = driverResult.rows[0];
+  res.json({
+    driver: {
+      name: `${driver.first_name} ${driver.last_name}`,
+      phone: driver.phone_number,
+      email: driver.email,
+      profile_pic: driver.profile_pic
+    }
+  });
+};

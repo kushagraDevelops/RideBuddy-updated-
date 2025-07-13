@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, Star } from 'lucide-react';
+import { Calendar, Clock, MapPin, Star, MessageCircle, Mail } from 'lucide-react';
+import ContactModal from './contact';
 
 function MyRides() {
   const [activeTab, setActiveTab] = useState('joined');
@@ -7,6 +8,8 @@ function MyRides() {
   const [offeringRides, setOfferingRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null); // Changed from selectedDriver
 
   useEffect(() => {
     const fetchRides = async () => {
@@ -40,6 +43,21 @@ function MyRides() {
     fetchRides();
   }, [activeTab]);
 
+  const handleChatClick = (ride) => {
+    // Navigate to chat with the driver
+    // You can implement this based on your routing setup
+    // For example: navigate(`/chat/${ride.driver_id}`) or window.location.href = `/chat/${ride.driver_id}`
+    console.log('Opening chat with driver:', ride.first_name, ride.last_name);
+    // Replace with your actual chat navigation logic
+  };
+
+  const handleContactClick = (ride) => {
+    // Pass bookingId instead of driver object
+    console.log('Opening contact modal for booking:', ride.booking_id);
+    setSelectedBookingId(ride.booking_id);
+    setShowContactModal(true);
+  };
+
   const renderStars = (rating) => {
     if (!rating) return null;
     return (
@@ -55,7 +73,7 @@ function MyRides() {
   };
 
   const renderRideCard = (ride, isOffering = false) => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden p-6 mb-4">
+    <div key={ride.ride_id} className="bg-white rounded-lg shadow-md overflow-hidden p-6 mb-4">
       {!isOffering ? (
         <>
           <div className="flex items-center mb-4">
@@ -105,6 +123,27 @@ function MyRides() {
               ₹{(ride.price_per_seat * ride.seats_booked).toFixed(2)}
             </p>
           </div>
+          
+          {/* Chat and Contact buttons - only show for confirmed rides */}
+          {ride.booking_status === 'confirmed' && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleChatClick(ride)}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-300 flex items-center justify-center space-x-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Chat</span>
+                </button>
+                <button
+                  onClick={() => handleContactClick(ride)}
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-md text-sm transition duration-300 flex items-center justify-center"
+                >
+                  <Mail className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -149,9 +188,9 @@ function MyRides() {
               </div>
             </div>
             <a href={`/MyRides/manage/${ride.ride_id}`}>
-            <button className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-medium py-1 px-3 rounded-md text-sm transition duration-300">
-              Manage
-            </button>
+              <button className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-medium py-1 px-3 rounded-md text-sm transition duration-300">
+                Manage
+              </button>
             </a>
           </div>
         </>
@@ -210,10 +249,15 @@ function MyRides() {
           }, true)
         )}
       </div>
+
+      {/* Contact Modal - Updated to use bookingId */}
+      <ContactModal 
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        bookingId={selectedBookingId}  // ✅ Now passing bookingId
+      />
     </div>
   );
 }
 
 export default MyRides;
-
-

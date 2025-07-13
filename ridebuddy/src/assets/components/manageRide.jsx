@@ -9,6 +9,7 @@ const RideBookingManager = ({ onBack }) => {
   const [bookingRequests, setBookingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // Fetch ride details and bookings
   useEffect(() => {
@@ -327,10 +328,7 @@ const RideBookingManager = ({ onBack }) => {
                           <Mail className="mr-2" size={14} />
                           {request.passengerEmail}
                         </div>
-                        <div className="flex items-center text-gray-600">
-                          <Phone className="mr-2" size={14} />
-                          {request.passengerPhone}
-                        </div>
+                       
                       </div>
                     </div>
 
@@ -385,21 +383,41 @@ const RideBookingManager = ({ onBack }) => {
             </h2>
             <div className="grid gap-3">
               {confirmedRequests.map((request) => (
-                <div key={request.id} className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                        {typeof request.passengerAvatar === 'string' && request.passengerAvatar.length <= 2 
-                          ? request.passengerAvatar 
-                          : request.passengerName.split(' ').map(n => n[0]).join('')}
+                <div key={request.id} className="mb-2">
+                  <div 
+                    className={`bg-white rounded-lg shadow p-4 border-l-4 cursor-pointer ${selectedUser && selectedUser.id === request.id ? 'border-blue-500' : 'border-green-500'}`}
+                    onClick={() => setSelectedUser(request)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                          {typeof request.passengerAvatar === 'string' && request.passengerAvatar.length <= 2 
+                            ? request.passengerAvatar 
+                            : request.passengerName.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{request.passengerName}</h3>
+                          <p className="text-gray-600 text-sm">{request.requestedSeats} seat(s) • ₹{request.totalFare}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800">{request.passengerName}</h3>
-                        <p className="text-gray-600 text-sm">{request.requestedSeats} seat(s) • ₹{request.totalFare}</p>
+                      {getStatusBadge(request.status)}
+                    </div>
+                  </div>
+                  {selectedUser && selectedUser.id === request.id && (
+                    <div className="mt-2 bg-gray-50 p-4 rounded-lg shadow-inner border border-blue-300 max-w-md ml-14">
+                      <h4 className="font-medium text-gray-800 mb-2">Contact Details</h4>
+                      <div className="space-y-1 text-sm text-gray-700">
+                        <div className="flex items-center">
+                          <Mail className="mr-2" size={16} />
+                          <span>{selectedUser.passengerEmail}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Phone className="mr-2" size={16} />
+                          <span>{selectedUser.passengerPhone}</span>
+                        </div>
                       </div>
                     </div>
-                    {getStatusBadge(request.status)}
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
