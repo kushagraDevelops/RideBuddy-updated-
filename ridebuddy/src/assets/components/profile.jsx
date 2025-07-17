@@ -1,44 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Star, Edit, Key, Clock, LogOut, Award, MapPin, User, Phone, Mail, CheckCircle } from 'lucide-react';
 
 export default function ProfilePage() {
+  const [user, setUser] = useState({
+    name: '', 
+    username: '',
+    email: '',
+    phone: '',  
+    profileImage: 'https://via.placeholder.com/150', // Fixed: Only one profileImage field
+    verified: false,
+    rating: 0,  
+    type: '',
+    recentRides: [],
+  });
+  
   // Updated Indian user data
-  const user = {
-    name: "Aditya Sharma",
-    username: "aditya_s",
-    email: "aditya@example.com",
-    phone: "+91 98765 43210",
-    type: "Both", // Driver / Passenger / Both
-    verified: true,
-    rating: 4.8,
-    profileImage: "/api/placeholder/150/150",
-    recentRides: [
-      {
-        id: 1,
-        date: "15 April, 2025",
-        time: "09:30 AM",
-        pickup: "Jaipur",
-        dropoff: "Delhi",
-        role: "Driver"
-      },
-      {
-        id: 2,
-        date: "13 April, 2025",
-        time: "05:45 PM",
-        pickup: "Gurgaon",
-        dropoff: "Noida",
-        role: "Passenger"
-      },
-      {
-        id: 3,
-        date: "10 April, 2025",
-        time: "08:15 AM",
-        pickup: "Bhiwani",
-        dropoff: "Ambala",
-        role: "Driver"
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token'); // Adjust based on your auth setup
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        const data = await response.json();
+        setUser(data.user);
+      } catch (error) { 
+        console.error('Error fetching user profile:', error);
       }
-    ]
-  };
+    };
+    fetchUserData();
+  }, []);
 
   // Generate star rating display
   const renderStars = (rating) => {
@@ -122,7 +120,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center">
                 <Phone size={18} className="text-green-600 mr-3" />
-                <span className="text-gray-600">{user.phone}</span>
+                <span className="text-gray-600">{user.phone || 'Not provided'}</span>
               </div>
             </div>
           </div>
@@ -157,31 +155,37 @@ export default function ProfilePage() {
           </div>
           
           <div className="divide-y divide-green-100">
-            {user.recentRides.map(ride => (
-              <div key={ride.id} className="p-5 hover:bg-green-50 transition-colors duration-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500 mb-1">{ride.date} at {ride.time}</p>
-                    <div className="flex items-start mb-2">
-                      <MapPin size={18} className="text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-gray-700">{ride.pickup}</p>
-                        <p className="text-sm text-gray-500">to {ride.dropoff}</p>
+            {user.recentRides && user.recentRides.length > 0 ? (
+              user.recentRides.map(ride => (
+                <div key={ride.id} className="p-5 hover:bg-green-50 transition-colors duration-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-500 mb-1">{ride.date} at {ride.time}</p>
+                      <div className="flex items-start mb-2">
+                        <MapPin size={18} className="text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-gray-700">{ride.pickup}</p>
+                          <p className="text-sm text-gray-500">to {ride.dropoff}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <span className={`text-sm px-3 py-1 rounded-full ${
-                      ride.role === 'Driver' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {ride.role}
-                    </span>
+                    <div>
+                      <span className={`text-sm px-3 py-1 rounded-full ${
+                        ride.role === 'Driver' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {ride.role}
+                      </span>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-5 text-center text-gray-500">
+                <p>No recent rides found</p>
               </div>
-            ))}
+            )}
           </div>
           
           <div className="p-4 bg-green-50 text-center">

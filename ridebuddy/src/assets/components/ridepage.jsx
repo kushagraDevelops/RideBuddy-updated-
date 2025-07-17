@@ -376,8 +376,9 @@ const RideBuddyPage = () => {
       {/* Offer a Ride Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
         <button
-          onClick={() => setIsOfferModalOpen(true)}
+          onClick={() => navigate('/postride')}
           className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 flex items-center mx-auto"
+          
         >
           <Plus className="h-5 w-5 mr-2" />
           Offer a Ride
