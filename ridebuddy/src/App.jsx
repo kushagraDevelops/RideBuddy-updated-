@@ -19,14 +19,14 @@ function App() {
       <Routes>
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/" element={
-          <ProtectedRoute>
+          
             <RideBuddyHomepage />
-          </ProtectedRoute>
+      
         } />
         <Route path="/ridepage" element={
-          <ProtectedRoute>
+          
             <RideBuddyPage />
-          </ProtectedRoute>
+          
         } />
         <Route path="/MyRides" element={
           <ProtectedRoute>

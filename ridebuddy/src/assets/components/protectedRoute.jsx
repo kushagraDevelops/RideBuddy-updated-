@@ -14,11 +14,14 @@ function isTokenExpired(token) {
   }
 }
 
+import { useLocation } from 'react-router-dom';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
+  const location = useLocation();
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem('token');
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
   }
   return children;
 };

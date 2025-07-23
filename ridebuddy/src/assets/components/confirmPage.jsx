@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, User, Phone, Star, X, Users, MessageCircle } from 'lucide-react';
 
 const ConfirmationPage = () => {
   const { rideId } = useParams();
+  const navigate = useNavigate();
   const [rideData, setRideData] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   
   // User input states
   const [selectedSeats, setSelectedSeats] = useState(1);
@@ -80,7 +82,7 @@ const ConfirmationPage = () => {
 };
 
 
-  if (!showConfirmation) {
+  if (!showConfirmation && !isCancelled) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4 flex items-center justify-center">
         <div className="text-center">
@@ -144,7 +146,11 @@ const ConfirmationPage = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-t-3xl relative">
           <button 
-            onClick={() => setShowConfirmation(false)}
+           onClick = {()=> {
+              setIsCancelled(true);
+              navigate(-1);
+            }
+           }
             className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
           >
             <X size={20} />

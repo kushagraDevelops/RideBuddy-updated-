@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
   const [isRegistering, setIsRegistering] = useState(false); // toggle between login and registration modes
@@ -13,13 +14,14 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const location = useLocation();
   // --- ADD THIS useEffect ---  if already logged in, redirect to home page
   useEffect(() => {
     if (localStorage.getItem('token')) {
-      navigate('/', { replace: true });
+      const from = location.state?.from || '/';
+      navigate(from, { replace: true }); 
     }
-  }, [navigate]);
+  }, [navigate, location.state]);
   // --------------------------
 
   const toggleMode = () => {
@@ -88,7 +90,9 @@ const LoginPage = () => {
           if (result.token) {
             localStorage.setItem('token', result.token);
           }
-          navigate('/');
+          const redirectPath = location.state?.from || '/';
+          navigate(redirectPath, { replace: true });
+
         } else {
           setErrors({ submit: result.message || `Failed to ${isRegistering ? 'register' : 'login'}` });
         }

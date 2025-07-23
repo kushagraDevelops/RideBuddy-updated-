@@ -44,8 +44,8 @@ function Navbar(){
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                       <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Home</Link>
                       <Link to="/ridepage" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Find Ride</Link>
-                      <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Offer Ride</Link>
-                      <Link to="/myride" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">My Rides</Link>
+                      <Link to="/postride" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Offer Ride</Link>
+                      <Link to="/MyRides" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">My Rides</Link>
                       <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Profile</Link>
                     </div>
                   </div>
