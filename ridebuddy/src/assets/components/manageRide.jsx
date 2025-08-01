@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X, User, MapPin, Calendar, Clock, Phone, Mail, Car, Users, ArrowLeft, Loader } from 'lucide-react';
+import { Check, X, User, MapPin, Calendar, Clock, Phone, Mail, Car, Users, ArrowLeft, Loader, MessageCircle } from 'lucide-react';
 
 const RideBookingManager = ({ onBack }) => {
   const { rideId } = useParams(); // Get rideId from URL parameters
@@ -10,6 +10,12 @@ const RideBookingManager = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Add chat click handler
+  const handleChatClick = (user) => {
+    console.log('Opening chat with user:', user.passengerName, user.userId);
+    // Implement navigation or chat opening logic here
+  };
 
   // Fetch ride details and bookings
   useEffect(() => {
@@ -406,16 +412,26 @@ const RideBookingManager = ({ onBack }) => {
                   {selectedUser && selectedUser.id === request.id && (
                     <div className="mt-2 bg-gray-50 p-4 rounded-lg shadow-inner border border-blue-300 max-w-md ml-14">
                       <h4 className="font-medium text-gray-800 mb-2">Contact Details</h4>
-                      <div className="space-y-1 text-sm text-gray-700">
-                        <div className="flex items-center">
-                          <Mail className="mr-2" size={16} />
-                          <span>{selectedUser.passengerEmail}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="mr-2" size={16} />
-                          <span>{selectedUser.passengerPhone}</span>
-                        </div>
-                      </div>
+                  <div className="space-y-1 text-sm text-gray-700">
+                    <div className="flex items-center">
+                      <Mail className="mr-2" size={16} />
+                      <span>{selectedUser.passengerEmail}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="mr-2" size={16} />
+                      <span>{selectedUser.passengerPhone}</span>
+                    </div>
+                    {/* Chat button */}
+                    <div className="mt-2">
+                      <button
+                        onClick={() => handleChatClick(selectedUser)}
+                        className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 font-semibold text-sm"
+                      >
+                        <MessageCircle size={16} />
+                        <span>Chat</span>
+                      </button>
+                    </div>
+                  </div>
                     </div>
                   )}
                 </div>
