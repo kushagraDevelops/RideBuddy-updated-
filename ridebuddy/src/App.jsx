@@ -12,6 +12,7 @@ import ConfirmationPage from './assets/components/confirmPage';
 import RideBookingManager from './assets/components/manageRide';
 import ContactModal from './assets/components/contact';
 import Chat from './assets/components/chat';
+import MessagesPage from './assets/components/messages';
 
 function App() {
   return (  
@@ -67,6 +68,11 @@ function App() {
          <Route path="MyRides/manage/chat/:rideId" element={
           <ProtectedRoute>
             <Chat />
+          </ProtectedRoute>
+        } />
+         <Route path="/messages" element={
+          <ProtectedRoute>
+            <MessagesPage/>
           </ProtectedRoute>
         } />
         

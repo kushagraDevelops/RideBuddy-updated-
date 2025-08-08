@@ -392,83 +392,14 @@ const RideBuddyPage = () => {
         </button>
       </div>
 
-      {/* Floating Chat Widget */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {/* Chat Button */}
-        {!isChatOpen && (
-          <button 
-            onClick={() => setIsChatOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-transform duration-300 transform hover:scale-110"
-            aria-label="Open chat"
-          >
-            <MessageCircle className="h-6 w-6" />
-          </button>
-        )}
-        
-        {/* Chat Window */}
-        {isChatOpen && (
-          <div className="bg-white rounded-lg shadow-xl flex flex-col w-80 h-96 overflow-hidden">
-            {/* Chat Header */}
-            <div className="bg-indigo-600 text-white p-4 flex justify-between items-center">
-              <div className="flex items-center">
-                <MessageCircle className="h-5 w-5 mr-2" />
-                <h3 className="font-medium">RideBuddy Support</h3>
-              </div>
-              <button 
-                onClick={() => setIsChatOpen(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-                aria-label="Close chat"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+     
+       
             
-            {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto">
-              <div className="space-y-4">
-                {chatMessages.map((msg, index) => (
-                  <div 
-                    key={index} 
-                    className={`flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div 
-                      className={`max-w-3/4 rounded-lg p-3 ${
-                        msg.isBot 
-                          ? 'bg-gray-100 text-gray-800' 
-                          : 'bg-indigo-600 text-white'
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          
             
-            {/* Chat Input */}
-            <div className="border-t border-gray-200 p-3">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Type a message..."
-                  className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="ml-2 bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700 transition-colors"
-                  aria-label="Send message"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+         
       </div>
-    </div>
+    
   );
 };
 
