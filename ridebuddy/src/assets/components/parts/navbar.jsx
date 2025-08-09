@@ -68,7 +68,7 @@ function Navbar(){
                       <Link to="/postride" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Offer Ride</Link>
                       <Link to="/MyRides" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">My Rides</Link>
                       <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">Profile</Link>
-                      <Link to="/messages" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">
+                      <Link to="/chat/:rideid" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:bg-green-500">
                         <MessageCircle className="h-5 w-5 mr-2" />
                         Messages
                       </Link>

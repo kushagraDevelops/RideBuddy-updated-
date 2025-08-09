@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import rideRoutes from './routes/rideRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 // Import CORS middleware 
 import cors from 'cors';
 
@@ -20,9 +21,13 @@ app.use('/api/rides', rideRoutes);
 
 app.use('/api/bookings', bookingRoutes);
 
+app.use('/api/chats', chatRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
+
+
 

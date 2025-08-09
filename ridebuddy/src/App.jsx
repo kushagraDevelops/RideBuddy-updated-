@@ -65,7 +65,7 @@ function App() {
             <ContactModal />
           </ProtectedRoute>
         } />
-         <Route path="MyRides/manage/chat/:rideId" element={
+         <Route path="/chat/:rideId" element={
           <ProtectedRoute>
             <Chat />
           </ProtectedRoute>

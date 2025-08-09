@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Star, MessageCircle, Mail } from 'lucide-react';
 import ContactModal from './contact';
+import { useNavigate } from 'react-router-dom';
 
 function MyRides() {
   const [activeTab, setActiveTab] = useState('joined');
@@ -10,6 +11,7 @@ function MyRides() {
   const [error, setError] = useState(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null); // Changed from selectedDriver
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRides = async () => {
@@ -47,7 +49,9 @@ function MyRides() {
     // Navigate to chat with the driver
     // You can implement this based on your routing setup
     // For example: navigate(`/chat/${ride.driver_id}`) or window.location.href = `/chat/${ride.driver_id}`
+    navigate(`/chat/${ride.ride_id}`);
     console.log('Opening chat with driver:', ride.first_name, ride.last_name);
+    console.log(ride);
     // Replace with your actual chat navigation logic
   };
 
